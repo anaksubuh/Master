@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 class TikTokChrome:
     def __init__(self):
         self.driver = None
-        self.profile_path = r"D:\\profile\\tiktok\\jojo2801"
+        self.profile_path = r"D:\\Master Profile\\tiktok\\jojo2801"
     
     def create_driver(self):
         """Buat Chrome driver dengan profile"""
