@@ -1,0 +1,28 @@
+{
+"videos": [
+    {
+        "judul_video": "VID-20251127-WA0025.mp4",
+        "id_produk": "1731284724415825654"
+    },
+    {
+        "judul_video": "VID-20251127-WA0026.mp4", 
+        "id_produk": "1731284724415825654"
+    },
+    {
+        "judul_video": "VID-20251127-WA0027.mp4",
+        "id_produk": "1731284724415825654"
+    },
+    {
+        "judul_video": "VID-20251127-WA0028.mp4",
+        "id_produk": "1731284724415825654"
+    },
+    {
+        "judul_video": "VID-20251127-WA0033.mp4",
+        "id_produk": "1731284724415825654"
+    },
+    {
+        "judul_video": "VID-20251127-WA0034.mp4",
+        "id_produk": "1731284724415825654"
+    }
+]
+}
