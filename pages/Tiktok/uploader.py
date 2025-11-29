@@ -209,43 +209,53 @@ def inputproduk(namaproduk):
         tombol.click()
         time.sleep(randomdelay)
 
-        p = 5  # nilai awal
+        p = 1  # nilai awal
 
         while True:
             try:
-                tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div/div/div[2]/div/div[2]/button[2]/div/div')))
+                print('[+] next')
+                try:
+                    tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div/div/div[2]/div/div[2]/button[2]/div/div')))
+                except:
+                    tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div/div/div[2]/div/div[2]/button[2]/div')))
                 tombol.click()
                 time.sleep(randomdelay)
 
+                print('[+] showcase product')
                 tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div[2]/div/div/div[2]/div/div[1]/div/div[1]/div[2]/div[2]/button/div')))
                 tombol.click()
                 time.sleep(randomdelay)
 
+                # input nama produk
                 tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div[2]/div/div/div[2]/div/div[2]/div/div[2]/div/input')))
                 tombol.click()
                 tombol.send_keys(namaproduk)
                 time.sleep(randomdelay)
 
+                print('[+] click cari')
                 tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div[2]/div/div/div[2]/div/div[2]/div/div[2]/div/div')))
                 tombol.click()
                 time.sleep(randomdelay)
 
+                print('[+] pilih produk pertama')
                 tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div[2]/div/div/div[2]/div/div[3]/table/tbody/tr[1]/td[1]/div/div[1]/div[1]/input')))
                 tombol.click()
                 time.sleep(randomdelay)
 
+                print('[+] next')
                 tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div[2]/div/div/div[3]/button[2]')))
                 tombol.click()
                 time.sleep(randomdelay)
 
+                print('[+] add')
                 tombol = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, f'/html/body/div[{p}]/div[2]/div/div/div[3]/button[2]/div')))
                 tombol.click()
                 time.sleep(randomdelay)
 
+                print(f"Sukses di p={p-1}, coba p={p}")
                 break  # keluar dari loop jika berhasil
             except:
                 p += 1  # tambah 1 jika gagal
-                print(f"Gagal di p={p-1}, coba p={p}")
 
 def aturwaktu(jam, menit):
     jam = str(int(jam) + 1)  # Pastikan jam bertipe string setelah diubah
@@ -334,19 +344,19 @@ def autoupload(video_id, namaproduk, external_driver):
 
     time.sleep(delay_eksekusi)
 
-    uploadvidio(video_id)
+    uploadvidio(video_id) ##################
 
     time.sleep(delay_eksekusi)
 
-    #chekcopyrigth()
+    #chekcopyrigth() ##################
 
     time.sleep(delay_eksekusi)
 
-    deskripsiedit(namaproduk)
+    deskripsiedit(namaproduk) ##################
 
     time.sleep(delay_eksekusi)
 
-    inputproduk(namaproduk)
+    inputproduk(namaproduk) ##################
 
     time.sleep(delay_eksekusi)
 

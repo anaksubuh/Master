@@ -18,8 +18,9 @@ class TikTokChrome:
             options.add_argument("--disable-dev-shm-usage")
             
             self.driver = uc.Chrome(options=options, driver_executable_path=None)
-            self.driver.set_window_size(1920, 1080)
-            self.driver.set_window_position(0, 1080)
+            #self.driver.set_window_size(1920, 1080)
+            #self.driver.set_window_position(0, 1080)
+            #self.driver.set_window_position(0, 0)
             print("✅ Chrome driver berhasil dibuat")
             return True
             
@@ -34,6 +35,7 @@ class TikTokChrome:
             return False
         
         self.driver.get("https://www.tiktok.com/tiktokstudio/upload?from=creator_center")
+        self.driver.maximize_window()
         print("✅ TikTok Studio dibuka")
         return True
     
@@ -107,6 +109,7 @@ class TikTokChrome:
     def close(self):
         """Tutup driver"""
         if self.driver:
+            time.sleep(25)
             self.driver.quit()
             print("✅ Driver ditutup")
 
@@ -145,8 +148,6 @@ def main(video_id, namaproduk):
             import uploader as up
             up.autoupload(video_id, namaproduk, tiktok.driver)
 
-            input("\n⏹️ Tekan Enter untuk menutup browser...")
-            
     except Exception as e:
         print(f"❌ Error: {str(e)}")
     finally:
