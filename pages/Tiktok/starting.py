@@ -5,8 +5,8 @@ import os
 from pathlib import Path
 
 # ===== KONFIGURASI =====
-MASTER_PATH = r"D:\Master\pages\Tiktok\vidio"
-PRODUK_YANG_AKAN_DIUPLOAD = ["Baofeng UV-5R Dual Band"]  # Sesuaikan dengan nama folder produk
+MASTER_PATH = r"D:\Master\pages\Tiktok\vidio"  # Raw string sudah benar
+PRODUK_YANG_AKAN_DIUPLOAD = ["Baofeng UV-5R Dual Band,1731284724415825654"]  # Format: "Nama Barang,ID_Produk"
 MODE_ACAK = 0  # 0=Produk lengkap dulu, 1=Round Robin per video, 2=Produk sebagian lalu lanjut
 # =======================
 
@@ -31,16 +31,43 @@ def save_progress(last_index, putaran):
     with open("progress.json", "w") as f:
         json.dump({"last_index": last_index, "putaran": putaran}, f, indent=4)
 
+def parse_folder_name(folder_name):
+    """Parse nama folder untuk mendapatkan nama_barang dan id_produk"""
+    # Split berdasarkan koma
+    if ',' in folder_name:
+        parts = folder_name.split(',', 1)  # Split hanya pada koma pertama
+        nama_barang = parts[0].strip()
+        id_produk = parts[1].strip()
+        
+        # Validasi ID produk harus angka
+        if not id_produk.isdigit():
+            print(f"[WARNING] ID produk bukan angka: {id_produk}")
+            id_produk = "000000"
+    else:
+        # Jika tidak ada koma, gunakan seluruh string sebagai nama barang
+        nama_barang = folder_name
+        id_produk = "000000"
+        print(f"[WARNING] Format folder tidak valid (tidak ada koma): {folder_name}")
+    
+    return nama_barang, id_produk
+
 def scan_videos_from_folders():
     """Scan semua video dari folder produk yang dikonfigurasi"""
     produk_videos = {}
     
-    for produk in PRODUK_YANG_AKAN_DIUPLOAD:
-        produk_path = Path(MASTER_PATH) / produk
+    for produk_folder in PRODUK_YANG_AKAN_DIUPLOAD:
+        # Gunakan os.path.join untuk handle path dengan benar
+        produk_path = os.path.join(MASTER_PATH, produk_folder)
+        produk_path = Path(produk_path)
         
         if not produk_path.exists():
-            print(f"[WARNING] Folder produk '{produk}' tidak ditemukan di {produk_path}")
+            print(f"[WARNING] Folder produk '{produk_folder}' tidak ditemukan di {produk_path}")
             continue
+        
+        # Parse nama folder untuk mendapatkan nama_barang dan id_produk
+        nama_barang, id_produk = parse_folder_name(produk_folder)
+        print(f"[INFO] Folder: '{produk_folder}' -> Nama: '{nama_barang}', ID: '{id_produk}'")
+        print(f"[INFO] Mencari video di: {produk_path}")
             
         # Cari semua file video
         video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv']
@@ -53,15 +80,22 @@ def scan_videos_from_folders():
         # Urutkan video secara alfanumerik
         video_files.sort()
         
-        produk_videos[produk] = []
+        produk_videos[produk_folder] = {
+            'nama_barang': nama_barang,
+            'id_produk': id_produk,
+            'videos': []
+        }
+        
         for video_file in video_files:
-            produk_videos[produk].append({
+            produk_videos[produk_folder]['videos'].append({
                 'judul_video': video_file.stem,
-                'id_produk': produk,
+                'id_produk': id_produk,
+                'nama_barang': nama_barang,
                 'video_path': str(video_file)
             })
     
-    print(f"[INFO] Ditemukan {sum(len(videos) for videos in produk_videos.values())} video dari {len(produk_videos)} produk")
+    total_videos = sum(len(data['videos']) for data in produk_videos.values())
+    print(f"[INFO] Ditemukan {total_videos} video dari {len(produk_videos)} produk")
     return produk_videos
 
 def generate_upload_sequence(produk_videos, mode_acak):
@@ -70,45 +104,42 @@ def generate_upload_sequence(produk_videos, mode_acak):
     
     if mode_acak == 0:
         # MODE 0: Upload semua video produk 1 dulu, lalu produk 2, lalu produk 3
-        # Contoh: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4
-        for produk in PRODUK_YANG_AKAN_DIUPLOAD:
-            if produk in produk_videos:
-                sequence.extend(produk_videos[produk])
+        for produk_folder in PRODUK_YANG_AKAN_DIUPLOAD:
+            if produk_folder in produk_videos:
+                sequence.extend(produk_videos[produk_folder]['videos'])
     
     elif mode_acak == 1:
         # MODE 1: Round Robin - video 1 semua produk, lalu video 2 semua produk, dst
-        # Contoh: 1.1, 2.1, 3.1, 1.2, 2.2, 3.2, 1.3, 2.3, 3.3, 1.4, 2.4, 3.4
-        
         # Cari jumlah maksimum video per produk
-        max_videos = max(len(videos) for videos in produk_videos.values())
+        max_videos = max(len(data['videos']) for data in produk_videos.values())
         
         for video_index in range(max_videos):
-            for produk in PRODUK_YANG_AKAN_DIUPLOAD:
-                if produk in produk_videos and video_index < len(produk_videos[produk]):
-                    sequence.append(produk_videos[produk][video_index])
+            for produk_folder in PRODUK_YANG_AKAN_DIUPLOAD:
+                if (produk_folder in produk_videos and 
+                    video_index < len(produk_videos[produk_folder]['videos'])):
+                    sequence.append(produk_videos[produk_folder]['videos'][video_index])
     
     elif mode_acak == 2:
         # MODE 2: Upload video 1 & 2 semua produk dulu, lalu video 3 & 4 semua produk
-        # Contoh: 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 1.3, 1.4, 2.3, 2.4, 3.3, 3.4
-        
         # Cari jumlah maksimum video per produk
-        max_videos = max(len(videos) for videos in produk_videos.values())
+        max_videos = max(len(data['videos']) for data in produk_videos.values())
         
         # Group video per 2 (bisa diubah sesuai kebutuhan)
         group_size = 2
         
         for group_start in range(0, max_videos, group_size):
-            for produk in PRODUK_YANG_AKAN_DIUPLOAD:
-                if produk in produk_videos:
+            for produk_folder in PRODUK_YANG_AKAN_DIUPLOAD:
+                if produk_folder in produk_videos:
+                    videos = produk_videos[produk_folder]['videos']
                     # Ambil video dalam group saat ini
-                    for video_index in range(group_start, min(group_start + group_size, len(produk_videos[produk]))):
-                        sequence.append(produk_videos[produk][video_index])
+                    for video_index in range(group_start, min(group_start + group_size, len(videos))):
+                        sequence.append(videos[video_index])
     
     else:
         print(f"[WARNING] Mode acak {mode_acak} tidak valid, menggunakan mode 0")
-        for produk in PRODUK_YANG_AKAN_DIUPLOAD:
-            if produk in produk_videos:
-                sequence.extend(produk_videos[produk])
+        for produk_folder in PRODUK_YANG_AKAN_DIUPLOAD:
+            if produk_folder in produk_videos:
+                sequence.extend(produk_videos[produk_folder]['videos'])
     
     return sequence
 
@@ -121,6 +152,7 @@ print(f"🔄 Melanjutkan dari video index ke: {last_index}")
 print(f"🔁 Putaran terakhir: {putaran}")
 print(f"🎯 Mode Acak: {MODE_ACAK}")
 print(f"📦 Produk yang akan diupload: {', '.join(PRODUK_YANG_AKAN_DIUPLOAD)}")
+print(f"📁 Master Path: {MASTER_PATH}")
 
 while True:
     # Scan video dari folder
@@ -143,7 +175,7 @@ while True:
     # Tampilkan urutan upload
     print("📋 Urutan Upload:")
     for i, video in enumerate(upload_sequence, 1):
-        print(f"  {i}. {video['id_produk']} - {video['judul_video']}")
+        print(f"  {i}. {video['nama_barang']} - {video['judul_video']} (ID: {video['id_produk']})")
     print()
 
     # Mulai dari index terakhir
@@ -152,14 +184,17 @@ while True:
             video = upload_sequence[index]
             judul = video.get('judul_video', 'Tidak ada judul')
             id_produk = video.get('id_produk', 'Tidak ada ID produk')
+            nama_barang = video.get('nama_barang', 'Tidak ada nama barang')
             video_path = video.get('video_path', 'Tidak ada path')
 
-            print(f"[{index+1}/{len(upload_sequence)}] {judul} : {id_produk}")
+            print(f"[{index+1}/{len(upload_sequence)}] {judul}")
+            print(f"   📦 Produk: {nama_barang}")
+            print(f"   🆔 ID: {id_produk}")
             print(f"   📁 Path: {video_path}")
 
-            # Import dan jalankan main function
+            # Import dan jalankan main function dengan FULL PATH video
             import main as au
-            au.main(judul, id_produk)
+            au.main(video_path, id_produk, nama_barang)  # Kirim full path video
 
             # Simpan progress setelah sukses
             save_progress(index + 1, putaran)

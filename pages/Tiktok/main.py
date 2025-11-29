@@ -113,7 +113,7 @@ class TikTokChrome:
             self.driver.quit()
             print("✅ Driver ditutup")
 
-def main(video_id, namaproduk):
+def main(judul, id_produk, nama_barang):
     # Buat instance
     tiktok = TikTokChrome()
     
@@ -146,7 +146,7 @@ def main(video_id, namaproduk):
 
             # PERBAIKAN: Panggil function dengan parameter yang benar
             import uploader as up
-            up.autoupload(video_id, namaproduk, tiktok.driver)
+            up.autoupload(judul, id_produk, nama_barang, tiktok.driver)
 
     except Exception as e:
         print(f"❌ Error: {str(e)}")

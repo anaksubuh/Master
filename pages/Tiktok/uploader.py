@@ -45,26 +45,44 @@ def random_delay_upload():
     #return round(random.uniform(1500, 2100), 1) # 30 menit sampai 35 menit
     #return round(random.uniform(30.0, 60.0), 1) # 30 detik sampai 60 detik
     return round(random.uniform(1800, 3600), 1) # 30 detik sampai 60 detik
-    
+
 def uploadvidio(video_id):
-    video_path = f"{video_folder}\{video_id}"
-    print(video_path)
+    print(video_id)
 
     driver.get("https://www.tiktok.com/tiktokstudio/upload?from=creator_center")
     time.sleep(2)
 
-    print(f"🔄 Mengupload video: {video_path}")
+    print(f"🔄 Mengupload video: {video_id}")
 
-    # Tunggu halaman dimuat dengan delay acak
     time.sleep(random_delay())
 
+    # Ambil input file asli
     input_file = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//input[@type="file" and @accept="video/*"]'))
+        EC.presence_of_element_located(
+            (By.XPATH, '//input[@type="file" and @accept="video/*"]')
+        )
     )
-    input_file.send_keys(video_path)  # Kirimkan path video ke elemen input
-    print(f"✅ Video berhasil diunggah: {video_path}")
 
-    # Tunggu sebelum lanjut ke video berikutnya dengan delay acak
+    # Upload menggunakan send_keys
+    input_file.send_keys(video_id)
+
+    # Trigger event onchange (WAJIB PADA UI TIKTOK TERBARU)
+    driver.execute_script(
+        "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+        input_file
+    )
+
+    print(f"📤 Menunggu proses upload TikTok...")
+
+    # Tunggu sampai thumbnail muncul (berarti benar-benar keupload)
+    WebDriverWait(driver, 60).until(
+        EC.presence_of_element_located(
+            (By.XPATH, '//img[contains(@src,"tiktok")]')
+        )
+    )
+
+    print(f"✅ Video benar-benar sudah terupload: {video_id}")
+
     time.sleep(random_delay())
 
 def deskripsiedit(nama_produk):
@@ -333,7 +351,9 @@ def posting():
         else:
             print("❌ Tidak ada tombol yang bisa diklik dari index 1 sampai 10. Ulangi...")
 
-def autoupload(video_id, namaproduk, external_driver):
+    pass
+
+def autoupload(judul, id_produk, nama_barang,external_driver):
     # MODIFIKASI: Assign external driver ke global driver
     global driver
     driver = external_driver
@@ -344,7 +364,7 @@ def autoupload(video_id, namaproduk, external_driver):
 
     time.sleep(delay_eksekusi)
 
-    uploadvidio(video_id) ##################
+    uploadvidio(judul) ##################
 
     time.sleep(delay_eksekusi)
 
@@ -352,11 +372,11 @@ def autoupload(video_id, namaproduk, external_driver):
 
     time.sleep(delay_eksekusi)
 
-    deskripsiedit(namaproduk) ##################
+    deskripsiedit(nama_barang) ##################
 
     time.sleep(delay_eksekusi)
 
-    inputproduk(namaproduk) ##################
+    inputproduk(id_produk) ##################
 
     time.sleep(delay_eksekusi)
 
